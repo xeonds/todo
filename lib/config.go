@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// 配置管理
 func LoadConfig[Config any]() *Config {
 	if _, err := os.Stat("config.yaml"); err != nil {
 		confTmpl := new(Config)
