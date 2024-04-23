@@ -43,6 +43,16 @@ func JWTMiddleware(authToken func(*gin.Context, UserClaim) error) gin.HandlerFun
 	}
 }
 
+func AuthMiddleware(token string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetHeader("Authorization") != token {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Next()
+	}
+}
+
 // 跨域中间件
 func CorsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

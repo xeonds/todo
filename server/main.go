@@ -16,7 +16,7 @@ func main() {
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
-
+	api.Use(lib.AuthMiddleware(config.Token))
 	api.POST("/update", func(c *gin.Context) {
 		var request struct {
 			Content string `json:"content"`

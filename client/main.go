@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -31,14 +32,14 @@ func main() {
 			log.Println("No content to push.")
 			return
 		}
-		err := postContent(config.ServerUrl, content)
+		err := postContent(config.ServerUrl, config.Token, content)
 		if err != nil {
 			log.Printf("Failed to push content: %v\n", err)
 			return
 		}
 		log.Println("Content pushed successfully.")
 	case "pull":
-		content, err := getContent(config.ServerUrl)
+		content, err := getContent(config.ServerUrl, config.Token)
 		if err != nil {
 			log.Printf("Failed to pull content: %v\n", err)
 			return
@@ -70,23 +71,53 @@ func readContent(filename string) string {
 	return string(content)
 }
 
-func postContent(baseUrl, content string) error {
-	url := baseUrl + "/api/v1/update"
+func postContent(baseUrl, token, content string) error {
 	payload, _ := json.Marshal(map[string]string{"content": content})
-	_, err := http.Post(url, "application/json", bytes.NewBufferString(string(payload)))
-	return err
+	req, err := http.NewRequest("POST", baseUrl+"/api/v1/update", bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
 
-func getContent(baseUrl string) (string, error) {
-	url := baseUrl + "/api/v1/content"
-	resp, err := http.Get(url)
+func getContent(baseUrl, token string) (string, error) {
+	req, err := http.NewRequest("GET", baseUrl+"/api/v1/content", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	content, _ := io.ReadAll(resp.Body)
-	return string(content), nil
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var data map[string]string
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return "", err
+	}
+
+	return data["content"], nil
 }
 
 func saveContent(content string, filename string) error {
