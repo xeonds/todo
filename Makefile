@@ -10,3 +10,6 @@ all: linux-amd64
 linux-amd64: 
 	GOOS=linux GOARCH=amd64 cd client && $(GOBUILD) -o ../$(BINDIR)/$(NAME)-client-$@
 	GOOS=linux GOARCH=amd64 cd server && $(GOBUILD) -o ../$(BINDIR)/$(NAME)-server-$@
+
+deploy: linux-amd64
+	docker-compose up -d

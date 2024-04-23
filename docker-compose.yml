@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  todo-server:
+    image: ubuntu:latest
+    working_dir: /app
+    command: /app/todo-server-linux-amd64
+    volumes:
+      - ./build:/app
+      - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime:ro
+    ports:
+      - "4567:4567"
+    restart: always
+    stdin_open: true
+    tty: true
