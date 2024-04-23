@@ -6,15 +6,13 @@ import (
 	"os"
 	"todo/lib"
 
+	"todo/config"
+
 	"github.com/gin-gonic/gin"
 )
 
-type Config struct {
-	lib.ServerConfig
-}
-
 func main() {
-	config := lib.LoadConfig[Config]()
+	config := lib.LoadConfig[config.Config]()
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
@@ -25,6 +23,7 @@ func main() {
 		}
 		if err := c.ShouldBindJSON(&request); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			log.Println("parse data error: ", err)
 			return
 		}
 		saveToServer(request.Content)
