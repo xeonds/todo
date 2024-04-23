@@ -45,7 +45,7 @@ func main() {
 			return
 		}
 		if filename == "" {
-			log.Println(content)
+			fmt.Println(content)
 		} else {
 			err := saveContent(content, filename)
 			if err != nil {
